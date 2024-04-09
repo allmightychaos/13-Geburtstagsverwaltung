@@ -47,7 +47,7 @@ public class BirthdayManager extends JFrame {
         };
 
         // Custom data
-        DateFormat df = new SimpleDateFormat("dd. MMMM", Locale.GERMAN); // Use appropriate locale
+        DateFormat df = new SimpleDateFormat("dd. MMMM", Locale.GERMAN);
         model.addRow(new Object[]{df.format(new Date()), "Alexander Mustermann"});
         model.addRow(new Object[]{df.format(new Date()), "Marina Trump"});
         model.addRow(new Object[]{"30. Jänner", "Max Moritz"});
@@ -57,7 +57,6 @@ public class BirthdayManager extends JFrame {
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane);
 
-        // Listeners
         addItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
