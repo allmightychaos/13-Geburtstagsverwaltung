@@ -22,8 +22,8 @@ public class BirthdayManager extends JFrame {
     private final String xmlFilePath = "birthdays.xml";
 
     public BirthdayManager() {
-        loadBirthdays();
         createUI();
+        loadBirthdays();
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(400, 300);
         setLocationRelativeTo(null);
@@ -59,12 +59,14 @@ public class BirthdayManager extends JFrame {
             }
         };
 
+        /*
         // Custom data
         DateFormat df = new SimpleDateFormat("dd. MMMM", Locale.GERMAN);
         model.addRow(new Object[]{df.format(new Date()), "Alexander Mustermann"});
         model.addRow(new Object[]{df.format(new Date()), "Marina Trump"});
         model.addRow(new Object[]{"30. Jänner", "Max Moritz"});
         model.addRow(new Object[]{"3. Februar", "Maria Smith"});
+        */
 
         refreshTable();
         JScrollPane scrollPane = new JScrollPane(table);
