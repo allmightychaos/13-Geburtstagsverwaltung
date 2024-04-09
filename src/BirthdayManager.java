@@ -1,14 +1,16 @@
+import com.toedter.calendar.JDateChooser;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.bind.annotation.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class BirthdayManager extends JFrame {
     private JTable table;
@@ -80,27 +82,80 @@ public class BirthdayManager extends JFrame {
     }
 
     private void addBirthday() {
-        // TODO: Implement add birthday logic using JDatePicker
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        JTextField nameField = new JTextField(10);
+        JDateChooser dateChooser = new JDateChooser();
+        panel.add(new JLabel("Name:"));
+        panel.add(nameField);
+        panel.add(new JLabel("Date:"));
+        panel.add(dateChooser);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Add Birthday",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+            Date date = dateChooser.getDate();
+            String name = nameField.getText();
+            if (date != null && !name.isEmpty()) {
+                birthdayList.add(new Birthday(name, date));
+                refreshTable();
+                saveBirthdays();
+            }
+        }
     }
 
     private void deleteBirthday() {
-        // TODO: Implement delete birthday logic
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0) {
+            birthdayList.remove(selectedRow);
+            refreshTable();
+            saveBirthdays();
+        }
     }
 
     private void changeLanguage() {
-        // TODO: Implement language change logic
+        // [USED CHATGPT FOR THIS METHODE]
+        // Simple implementation to change date format, to be replaced by full i18n approach
+        Locale newLocale = Locale.getDefault().equals(Locale.GERMANY) ? Locale.ENGLISH : Locale.GERMANY;
+        Locale.setDefault(newLocale);
+        refreshTable();
     }
 
     private void refreshTable() {
-        // TODO: Implement refresh logic for the table
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd. MMMM", Locale.getDefault());
+        model.setRowCount(0); // Clears the table
+        for (Birthday b : birthdayList) {
+            model.addRow(new Object[]{dateFormat.format(b.getDate()), b.getName()});
+        }
     }
 
     private void loadBirthdays() {
-        // TODO: Implement load logic from XML
+        try {
+            File file = new File(xmlFilePath);
+            if (file.exists()) {
+                JAXBContext context = JAXBContext.newInstance(BirthdayList.class);
+                Unmarshaller unmarshaller = context.createUnmarshaller();
+                BirthdayList birthdayListWrapper = (BirthdayList) unmarshaller.unmarshal(file);
+                birthdayList.clear();
+                birthdayList.addAll(birthdayListWrapper.getBirthdays());
+                refreshTable();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void saveBirthdays() {
-        // TODO: Implement save logic to XML
+        try {
+            JAXBContext context = JAXBContext.newInstance(BirthdayList.class);
+            Marshaller marshaller = context.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            BirthdayList birthdayListWrapper = new BirthdayList();
+            birthdayListWrapper.setBirthdays(birthdayList);
+            marshaller.marshal(birthdayListWrapper, new File(xmlFilePath));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
@@ -122,7 +177,31 @@ class Birthday {
     @XmlSchemaType(name = "date")
     private Date date;
 
-    // Getters and setters
+    // No-argument constructor for JAXB
+    public Birthday() {
+    }
+
+    // Constructor with arguments for the application
+    public Birthday(String name, Date date) {
+        this.name = name;
+        this.date = date;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
 }
 
 // BirthdayList class to store the list of birthdays
@@ -132,5 +211,11 @@ class BirthdayList {
     @XmlElement(name = "birthday")
     private List<Birthday> birthdays = null;
 
-    // Getters and setters
+    public Collection<? extends Birthday> getBirthdays() {
+        return birthdays;
+    }
+
+    public void setBirthdays(List<Birthday> birthdays) {
+        this.birthdays = birthdays;
+    }
 }
