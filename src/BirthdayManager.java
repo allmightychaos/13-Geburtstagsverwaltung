@@ -5,12 +5,15 @@ import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.bind.annotation.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 
 public class BirthdayManager extends JFrame {
     private JTable table;
@@ -29,14 +32,22 @@ public class BirthdayManager extends JFrame {
     private void createUI() {
         // Menu
         JMenuBar menuBar = new JMenuBar();
+
         JMenu menu = new JMenu("Options");
+
         JMenuItem addItem = new JMenuItem("Add Birthday");
         JMenuItem deleteItem = new JMenuItem("Delete Birthday");
         JMenuItem changeLanguageItem = new JMenuItem("Change Language");
+
+        addItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        deleteItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+
         menu.add(addItem);
         menu.add(deleteItem);
         menu.add(changeLanguageItem);
+
         menuBar.add(menu);
+
         setJMenuBar(menuBar);
 
         // Table
@@ -208,10 +219,16 @@ class Birthday {
 @XmlRootElement(name = "birthdays")
 @XmlAccessorType(XmlAccessType.FIELD)
 class BirthdayList {
-    @XmlElement(name = "birthday")
-    private List<Birthday> birthdays = null;
+    private List<Birthday> birthdays;
 
-    public Collection<? extends Birthday> getBirthdays() {
+    public BirthdayList() {
+        birthdays = new ArrayList<>();
+    }
+
+    public List<Birthday> getBirthdays() {
+        if (birthdays == null) {
+            birthdays = new ArrayList<>();
+        }
         return birthdays;
     }
 
