@@ -2,8 +2,6 @@
 
 ## Aufgabe
 
---- 
-
 s soll eine Swing GUI erstellt werden mit der die Geburtstage von Familie und Freunden verwaltet werden können.
 
 Die Geburtstage sollen in einer Tabelle in dem folgenden Format angezeigt werden:
@@ -22,15 +20,11 @@ Die eingetragenen Geburtstage sollen beim Beenden des Programms in einer XML Dat
 
 ## Hinweise
 
----
-
 [Datumsformatierung](https://www.journaldev.com/17899/java-simpledateformat-java-date-format) unter Java
 
 Achten Sie, dass die korrekte Datumsformatierung der gewählten Sprachen verwendet wird.
 
 ## Erweiterung
-
---- 
 
 Fügen Sie einen Menüpunkt "Drucken" ein mit dem die Geburtstage gedruckt werden können.
 
