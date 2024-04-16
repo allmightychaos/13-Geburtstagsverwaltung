@@ -49,14 +49,7 @@ public class BirthdayManager extends JFrame {
         JMenuItem deleteItem = createMenuItem("Geburtstag löschen", KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
         JMenuItem changeLanguageItem = createMenuItem("Sprache ändern", KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
 
-        JMenu dateMenu = new JMenu("Datum");
-        String[] dateFormats = {"dd MMM yyyy", "MM/dd/yyyy", "yyyy-MM-dd", "dd-MMM-yy"};
-
-        for (String format : dateFormats) {
-            JMenuItem formatItem = new JMenuItem(format);
-            dateMenu.add(formatItem);
-            formatItem.addActionListener(e -> changeDateFormat(format));
-        }
+        JMenu dateMenu = getDateMenu();
 
         menu.add(addItem);
         menu.add(deleteItem);
@@ -69,6 +62,29 @@ public class BirthdayManager extends JFrame {
         changeLanguageItem.addActionListener(e -> changeLanguage());
 
         return menuBar;
+    }
+
+    private JMenu getDateMenu() {
+        JMenu dateMenu = new JMenu("Datum");
+        String[] dateFormats = {"dd MMM yyyy", "MM/dd/yyyy", "yyyy-MM-dd", "dd-MMM-yy"};
+
+        ButtonGroup group = new ButtonGroup();
+
+        for (int i = 0; i < dateFormats.length; i++) {
+            JCheckBoxMenuItem formatItem = new JCheckBoxMenuItem(dateFormats[i]);
+            if (i == 0) {
+                formatItem.setSelected(true);
+            }
+            group.add(formatItem);
+            dateMenu.add(formatItem);
+
+            int finalI = i;
+
+            formatItem.addActionListener(e -> {
+                changeDateFormat(dateFormats[finalI]);
+            });
+        }
+        return dateMenu;
     }
 
     private void changeDateFormat(String newFormat) {
