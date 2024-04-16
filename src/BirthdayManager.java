@@ -20,6 +20,7 @@ public class BirthdayManager extends JFrame {
     private DefaultTableModel model;
     private final List<Birthday> birthdayList = new ArrayList<>();
     private final String xmlFilePath = "birthdays.xml";
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd. MMMM. yyyy", Locale.getDefault());
 
     public BirthdayManager() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -48,9 +49,19 @@ public class BirthdayManager extends JFrame {
         JMenuItem deleteItem = createMenuItem("Geburtstag löschen", KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
         JMenuItem changeLanguageItem = createMenuItem("Sprache ändern", KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
 
+        JMenu dateMenu = new JMenu("Datum");
+        String[] dateFormats = {"dd MMM yyyy", "MM/dd/yyyy", "yyyy-MM-dd", "dd-MMM-yy"};
+
+        for (String format : dateFormats) {
+            JMenuItem formatItem = new JMenuItem(format);
+            dateMenu.add(formatItem);
+            formatItem.addActionListener(e -> changeDateFormat(format));
+        }
+
         menu.add(addItem);
         menu.add(deleteItem);
         menu.add(changeLanguageItem);
+        menu.add(dateMenu);
         menuBar.add(menu);
 
         addItem.addActionListener(e -> addBirthday());
@@ -58,6 +69,11 @@ public class BirthdayManager extends JFrame {
         changeLanguageItem.addActionListener(e -> changeLanguage());
 
         return menuBar;
+    }
+
+    private void changeDateFormat(String newFormat) {
+        dateFormat = new SimpleDateFormat(newFormat, Locale.getDefault());
+        refreshTable();
     }
 
     private JMenuItem createMenuItem(String title, int keyEvent, int modifier) {
@@ -100,7 +116,6 @@ public class BirthdayManager extends JFrame {
     }
 
     private void refreshTable() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd. MMMM. yyyy", Locale.getDefault());
         model.setRowCount(0);
         birthdayList.forEach(b -> model.addRow(new Object[]{dateFormat.format(b.getDate()), b.getName()}));
     }
