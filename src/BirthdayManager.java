@@ -44,9 +44,9 @@ public class BirthdayManager extends JFrame {
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("Menü");
-        JMenuItem addItem = createMenuItem("Geburtstag hinzufügen", KeyEvent.VK_N);
-        JMenuItem deleteItem = createMenuItem("Geburtstag löschen", KeyEvent.VK_DELETE);
-        JMenuItem changeLanguageItem = new JMenuItem("Sprache ändern");
+        JMenuItem addItem = createMenuItem("Geburtstag hinzufügen", KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+        JMenuItem deleteItem = createMenuItem("Geburtstag löschen", KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+        JMenuItem changeLanguageItem = createMenuItem("Sprache ändern", KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
 
         menu.add(addItem);
         menu.add(deleteItem);
@@ -60,9 +60,10 @@ public class BirthdayManager extends JFrame {
         return menuBar;
     }
 
-    private JMenuItem createMenuItem(String title, int keyEvent) {
+    private JMenuItem createMenuItem(String title, int keyEvent, int modifier) {
         JMenuItem item = new JMenuItem(title);
-        item.setAccelerator(KeyStroke.getKeyStroke(keyEvent, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        KeyStroke keyStroke = KeyStroke.getKeyStroke(keyEvent, modifier);
+        item.setAccelerator(keyStroke);
         return item;
     }
 
