@@ -1,160 +1,123 @@
 import com.toedter.calendar.JDateChooser;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Marshaller;
-import jakarta.xml.bind.Unmarshaller;
-import jakarta.xml.bind.annotation.*;
+import jakarta.xml.bind.*;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BirthdayManager extends JFrame {
-    private JTable table;
     private DefaultTableModel model;
     private final List<Birthday> birthdayList = new ArrayList<>();
     private final String xmlFilePath = "birthdays.xml";
 
     public BirthdayManager() {
-        createUI();
-        loadBirthdays();
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(400, 300);
         setLocationRelativeTo(null);
+        loadBirthdays();
+        createUI();
     }
 
     private void createUI() {
-        // Menu
-        JMenuBar menuBar = new JMenuBar();
-
-        JMenu menu = new JMenu("Options");
-
-        JMenuItem addItem = new JMenuItem("Add Birthday");
-        JMenuItem deleteItem = new JMenuItem("Delete Birthday");
-        JMenuItem changeLanguageItem = new JMenuItem("Change Language");
-
-        addItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-        deleteItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-
-        menu.add(addItem);
-        menu.add(deleteItem);
-        menu.add(changeLanguageItem);
-
-        menuBar.add(menu);
-
-        setJMenuBar(menuBar);
-
-        // Table
-        String[] columnNames = {"Date", "Birthdays"};
-        model = new DefaultTableModel(columnNames, 0);
-        table = new JTable(model) {
+        setJMenuBar(createMenuBar());
+        JTable table = new JTable(model = new DefaultTableModel(new String[]{"Date", "Name"}, 0)) {
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
-
-        /*
-        // Custom data
-        DateFormat df = new SimpleDateFormat("dd. MMMM", Locale.GERMAN);
-        model.addRow(new Object[]{df.format(new Date()), "Alexander Mustermann"});
-        model.addRow(new Object[]{df.format(new Date()), "Marina Trump"});
-        model.addRow(new Object[]{"30. Jänner", "Max Moritz"});
-        model.addRow(new Object[]{"3. Februar", "Maria Smith"});
-        */
-
         refreshTable();
-        JScrollPane scrollPane = new JScrollPane(table);
-        add(scrollPane);
+        add(new JScrollPane(table));
+    }
 
-        addItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                addBirthday();
-            }
-        });
+    private JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("Options");
+        JMenuItem addItem = createMenuItem("Add Birthday", KeyEvent.VK_N);
+        JMenuItem deleteItem = createMenuItem("Delete Birthday", KeyEvent.VK_DELETE);
+        JMenuItem changeLanguageItem = new JMenuItem("Change Language");
 
-        deleteItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                deleteBirthday();
-            }
-        });
+        menu.add(addItem);
+        menu.add(deleteItem);
+        menu.add(changeLanguageItem);
+        menuBar.add(menu);
 
-        changeLanguageItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                changeLanguage();
-            }
-        });
+        addItem.addActionListener(e -> addBirthday());
+        deleteItem.addActionListener(e -> deleteBirthday(birthdayList, model));
+        changeLanguageItem.addActionListener(e -> changeLanguage());
+
+        return menuBar;
+    }
+
+    private JMenuItem createMenuItem(String title, int keyEvent) {
+        JMenuItem item = new JMenuItem(title);
+        item.setAccelerator(KeyStroke.getKeyStroke(keyEvent, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        return item;
     }
 
     private void addBirthday() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         JTextField nameField = new JTextField(10);
         JDateChooser dateChooser = new JDateChooser();
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.add(new JLabel("Name:"));
         panel.add(nameField);
         panel.add(new JLabel("Date:"));
         panel.add(dateChooser);
 
-        int result = JOptionPane.showConfirmDialog(this, panel, "Add Birthday",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (result == JOptionPane.OK_OPTION) {
-            Date date = dateChooser.getDate();
-            String name = nameField.getText();
-            if (date != null && !name.isEmpty()) {
-                birthdayList.add(new Birthday(name, date));
-                refreshTable();
-                saveBirthdays();
-            }
-        }
-    }
-
-    private void deleteBirthday() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow >= 0) {
-            birthdayList.remove(selectedRow);
+        int result = JOptionPane.showConfirmDialog(this, panel, "Add Birthday", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION && dateChooser.getDate() != null && !nameField.getText().isEmpty()) {
+            birthdayList.add(new Birthday(nameField.getText(), dateChooser.getDate()));
             refreshTable();
             saveBirthdays();
         }
     }
 
+    private void deleteBirthday(List<Birthday> list, DefaultTableModel model) {
+        int selectedRow = model.getRowCount() > 0 ? getSelectedRow() : -1;
+        if (selectedRow != -1) {
+            list.remove(selectedRow);
+            refreshTable();
+            saveBirthdays();
+        }
+    }
+
+    private int getSelectedRow() {
+        return new JTable(model).getSelectedRow();
+    }
+
     private void changeLanguage() {
-        // [USED CHATGPT FOR THIS METHODE]
-        // Simple implementation to change date format, to be replaced by full i18n approach
-        Locale newLocale = Locale.getDefault().equals(Locale.GERMANY) ? Locale.ENGLISH : Locale.GERMANY;
-        Locale.setDefault(newLocale);
+        Locale.setDefault(Locale.getDefault().equals(Locale.GERMANY) ? Locale.ENGLISH : Locale.GERMANY);
         refreshTable();
     }
 
     private void refreshTable() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd. MMMM", Locale.getDefault());
-        model.setRowCount(0); // Clears the table
-        for (Birthday b : birthdayList) {
-            model.addRow(new Object[]{dateFormat.format(b.getDate()), b.getName()});
-        }
+        model.setRowCount(0);
+        birthdayList.forEach(b -> model.addRow(new Object[]{dateFormat.format(b.getDate()), b.getName()}));
     }
 
     private void loadBirthdays() {
-        try {
-            File file = new File(xmlFilePath);
-            if (file.exists()) {
+        File file = new File(xmlFilePath);
+        if (file.exists()) {
+            try {
                 JAXBContext context = JAXBContext.newInstance(BirthdayList.class);
                 Unmarshaller unmarshaller = context.createUnmarshaller();
                 BirthdayList birthdayListWrapper = (BirthdayList) unmarshaller.unmarshal(file);
-                birthdayList.clear();
                 birthdayList.addAll(birthdayListWrapper.getBirthdays());
                 refreshTable();
+            } catch (JAXBException e) {
+                Logger.getLogger(BirthdayManager.class.getName()).log(Level.SEVERE, "Error processing XML", e);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -163,38 +126,24 @@ public class BirthdayManager extends JFrame {
             JAXBContext context = JAXBContext.newInstance(BirthdayList.class);
             Marshaller marshaller = context.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            BirthdayList birthdayListWrapper = new BirthdayList();
-            birthdayListWrapper.setBirthdays(birthdayList);
-            marshaller.marshal(birthdayListWrapper, new File(xmlFilePath));
-        } catch (Exception e) {
-            e.printStackTrace();
+            marshaller.marshal(new BirthdayList(birthdayList), new File(xmlFilePath));
+        } catch (JAXBException e) {
+            Logger.getLogger(BirthdayManager.class.getName()).log(Level.SEVERE, "Error processing XML", e);
         }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new BirthdayManager().setVisible(true);
-            }
-        });
+        SwingUtilities.invokeLater(() -> new BirthdayManager().setVisible(true));
     }
 }
 
-// Birthday class to store birthday data
 @XmlRootElement(name = "birthday")
 @XmlAccessorType(XmlAccessType.FIELD)
 class Birthday {
-    @XmlElement(name = "name")
     private String name;
-    @XmlElement(name = "date")
-    @XmlSchemaType(name = "date")
     private Date date;
 
-    // No-argument constructor for JAXB
-    public Birthday() {
-    }
-
-    // Constructor with arguments for the application
+    public Birthday() {}
     public Birthday(String name, Date date) {
         this.name = name;
         this.date = date;
@@ -207,34 +156,19 @@ class Birthday {
     public Date getDate() {
         return date;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
 }
 
-// BirthdayList class to store the list of birthdays
 @XmlRootElement(name = "birthdays")
 @XmlAccessorType(XmlAccessType.FIELD)
 class BirthdayList {
     private List<Birthday> birthdays;
 
-    public BirthdayList() {
-        birthdays = new ArrayList<>();
+    public BirthdayList() {}
+    public BirthdayList(List<Birthday> birthdays) {
+        this.birthdays = birthdays;
     }
 
     public List<Birthday> getBirthdays() {
-        if (birthdays == null) {
-            birthdays = new ArrayList<>();
-        }
-        return birthdays;
-    }
-
-    public void setBirthdays(List<Birthday> birthdays) {
-        this.birthdays = birthdays;
+        return birthdays == null ? new ArrayList<>() : birthdays;
     }
 }

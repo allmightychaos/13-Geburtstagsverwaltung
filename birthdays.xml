@@ -1,2 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<birthdays/>
+<birthdays>
+    <birthdays>
+        <name>Max Mustermann</name>
+        <date>2007-08-25+02:00</date>
+    </birthdays>
+</birthdays>
